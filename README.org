@@ -1,0 +1,69 @@
+#+title: ~octra.el~ - A super light alternative to ~hydra~ which allows you to define the body everywhere.
+
+~octra.el~ is an Emacs package from my disappointment while I am using hydra: I have to define my hydra /far away from/ the code that uses it.
+
+The key difference is that octra.el does not store your keymap somewhere or bind it to a key; it directly /returns/ it so that you can use it freely.
+
+* Installation
+This package is not available on MELPA so you will have to install it from GitHub. Check out your package manager for more details.
+
+* How to use
+There are two key functions provided by this package: ~octra-use~ and ~octra-bind~. They accept the same argument, one activates the map, and one returns a function to do it. Here is an example:
+
+#+begin_src emacs-lisp
+  ;; This creates a vim-like motion map and activates it right away.
+  (octra-use (list (cons "h" #'left-char)	; Define the map in this alist
+  		 (cons "j" #'next-line)
+  		 (cons "k" #'previous-line)
+  		 (cons "l" #'right-char)
+  		 (cons "q" #'keyboard-quit)) ; Use `keyboard-quit' to leave the map
+  	   t ; Make it sticky (i.e. does not quit after the first keystroke)
+  	   t ; Leave after the first foreign key (i.e. key that is not listed above)
+  	   nil				; Do not warn the user about the foreign key
+  	   nil)				; Do not block the foreign key from executing the command
+
+  ;; This creates a vim-like motion map and bind it to C-c m.
+  (bind-key "C-c m" (octra-bind (list (cons "h" #'left-char)	; Define the map in this alist
+  		  (cons "j" #'next-line)
+  		  (cons "k" #'previous-line)
+  		  (cons "l" #'right-char)
+  		  (cons "q" #'keyboard-quit)) ; Use `keyboard-quit' to leave the map
+  	    t ; Make it sticky (i.e. does not quit after the first keystroke)
+  	    t ; Leave after the first foreign key (i.e. key that is not listed above)
+  	    nil		  ; Do not warn the user about the foreign key
+  	    nil)) ; Do not block the foreign key from executing the command
+#+end_src
+
+You can find more usages in the documentation of ~octra-use~.
+
+* Comparison to similar things
+This section compares this package with ~hydra~ and ~transient.el~.
+
+** With ~hydra~
+~hydra~ is the most popular (and only, I guess) package doing the same thing this package does, and the one I was using before making this package. I have explained why I made this new package above.
+
+*** What ~hydra~ did better:
+- *Interface.* ~hydra~ uses a ~use-package~-like syntax to specify configurations in a compact way. This package, as a new one, does not support these shortcuts. But you can still do those things, although more complicated: (This table assumes that you have STICKY set)
+  | In ~hydra~ head:                  | In this package:                                                                            |
+  | ~("h" left-char :color red)~      | ~(cons "h" #'left-char)~ & FOREIGN-KEY-DROP                                                 |
+  | ~("h" left-char :color blue)~     | ~(cons "h" (lambda () (left-char) (keyboard-quit)))~  & FOREIGN-KEY-DROP                    |
+  | ~("h" left-char :color amaranth)~ | ~(cons "h" #'left-char)~ & FOREIGN-KEY-WARN & FOREIGN-KEY-DROP                              |
+  | ~("h" left-char :color teal)~     | ~(cons "h" (lambda () (left-char) (keyboard-quit)))~ & FOREIGN-KEY-WARN  & FOREIGN-KEY-DROP |
+  | ~("h" left-char :color pink)~     | ~(cons "h" #'left-char)~                                                                    |
+
+*** What this package did better:
+- *Flexibility, on the one hand*: This package takes the specification when it is going to really use it, while ~hydra~ forces you to define the hydra in top level, which causes the specification to go far away from the calling point. Using ~:hydra~ from ~use-package-hydra~ is also annoying for some people, including me, not to mention the extra package.
+- *Flexibility, on the other hand*: ~hydra~ doesn't allow you to define a map that warns about foreign keys but also runs it, while with this package you can simply use ~FOREIGN-KEY-WARN~.
+
+** With ~transient.el~
+I don't think I have to list a complete table to compare this package to ~transient.el~ because they are focusing on different things: one for combining commands together and one for specifying arguments before running a complicated command.
+
+* Roadmap
+- [X] Make things at least work
+- [ ] Make a macro to simplify things
+  - [ ] Easier action definition
+  - [ ] Non-sticky with exceptions
+
+* Fun fact
+- It took only about 3 hours for me to develop the first working version of this package.
+- This package is an example of a new rule discovered by me and I name it "the rule of flexibility": The less work the software have done, the more flexibility it provides.
