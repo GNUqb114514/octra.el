@@ -12,44 +12,38 @@ There are two key functions provided by this package: ~octra-use~ and ~octra-bin
 
 #+begin_src emacs-lisp
   ;; This creates a vim-like motion map and activates it right away.
-  (octra-use (list (cons "h" #'left-char)	; Define the map in this alist
-  		 (cons "j" #'next-line)
-  		 (cons "k" #'previous-line)
-  		 (cons "l" #'right-char)
-  		 (cons "q" #'keyboard-quit)) ; Use `keyboard-quit' to leave the map
+  (octra-use (octra-alist ("h" left-char)	; Use format (KEY COMMAND)
+  			("j" next-line)
+  			("k" previous-line)
+  			("l" right-char)
+  			("q" :q))	; :q stands for leave the map;
+  					; you can also use keyboard-quit
   	   t ; Make it sticky (i.e. does not quit after the first keystroke)
   	   t ; Leave after the first foreign key (i.e. key that is not listed above)
-  	   nil				; Do not warn the user about the foreign key
-  	   nil)				; Do not block the foreign key from executing the command
+  	   nil		  ; Do not warn the user about the foreign key
+  	   nil)	; Do not block the foreign key from executing the command
 
   ;; This creates a vim-like motion map and bind it to C-c m.
-  (bind-key "C-c m" (octra-bind (list (cons "h" #'left-char)	; Define the map in this alist
-  		  (cons "j" #'next-line)
-  		  (cons "k" #'previous-line)
-  		  (cons "l" #'right-char)
-  		  (cons "q" #'keyboard-quit)) ; Use `keyboard-quit' to leave the map
-  	    t ; Make it sticky (i.e. does not quit after the first keystroke)
-  	    t ; Leave after the first foreign key (i.e. key that is not listed above)
-  	    nil		  ; Do not warn the user about the foreign key
-  	    nil)) ; Do not block the foreign key from executing the command
+  (bind-key "C-c m" (list (cons "h" #'left-char)	; Define the map in this alist. This is the same as above.
+  			(cons "j" #'next-line)
+  			(cons "k" #'previous-line)
+  			(cons "l" #'right-char)
+  			(cons "q" #'keyboard-quit)) ; Use `keyboard-quit' to leave the map
+  	    t
+  	    t
+  	    nil
+  	    nil)
 #+end_src
 
 You can find more usages in the documentation of ~octra-use~.
+
+Note: currently nesting octras is *not* supported.
 
 * Comparison to similar things
 This section compares this package with ~hydra~ and ~transient.el~.
 
 ** With ~hydra~
 ~hydra~ is the most popular (and only, I guess) package doing the same thing this package does, and the one I was using before making this package. I have explained why I made this new package above.
-
-*** What ~hydra~ did better:
-- *Interface.* ~hydra~ uses a ~use-package~-like syntax to specify configurations in a compact way. This package, as a new one, does not support these shortcuts. But you can still do those things, although more complicated: (This table assumes that you have STICKY set)
-  | In ~hydra~ head:                  | In this package:                                                                            |
-  | ~("h" left-char :color red)~      | ~(cons "h" #'left-char)~ & FOREIGN-KEY-DROP                                                 |
-  | ~("h" left-char :color blue)~     | ~(cons "h" (lambda () (left-char) (keyboard-quit)))~  & FOREIGN-KEY-DROP                    |
-  | ~("h" left-char :color amaranth)~ | ~(cons "h" #'left-char)~ & FOREIGN-KEY-WARN & FOREIGN-KEY-DROP                              |
-  | ~("h" left-char :color teal)~     | ~(cons "h" (lambda () (left-char) (keyboard-quit)))~ & FOREIGN-KEY-WARN  & FOREIGN-KEY-DROP |
-  | ~("h" left-char :color pink)~     | ~(cons "h" #'left-char)~                                                                    |
 
 *** What this package did better:
 - *Flexibility, on the one hand*: This package takes the specification when it is going to really use it, while ~hydra~ forces you to define the hydra in top level, which causes the specification to go far away from the calling point. Using ~:hydra~ from ~use-package-hydra~ is also annoying for some people, including me, not to mention the extra package.
@@ -60,8 +54,9 @@ I don't think I have to list a complete table to compare this package to ~transi
 
 * Roadmap
 - [X] Make things at least work
-- [ ] Make a macro to simplify things
-  - [ ] Easier action definition
+- [ ] Support nesting
+- [-] Make a macro to simplify things
+  - [X] Easier action definition
   - [ ] Non-sticky with exceptions
 
 * Fun fact
